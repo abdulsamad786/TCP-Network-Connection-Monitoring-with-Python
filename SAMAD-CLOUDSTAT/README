@@ -1,0 +1,40 @@
+Perform Following steps:
+
+#sudo apt-get update
+#sudo apt-get -y install python-pip
+#sudo pip install -U pip
+#sudo -H pip install Django==1.6.2
+
+Built, Install and Load the tcp_probe kernel driver by cd into directory tcp_probe_plus directory and run:
+# cd tcp_probe_plus
+
+Build or compile the driver
+# make
+
+Load the kernel into the memory so that it can start capturing network traffic and tcp connection stats.
+#sudo insmod tcp_probe_plus.ko full=1
+#sudo chmod 644 /proc/net/tcpprobe 
+
+Now generate some network traffic. You may have another Linux VM that will be sending traffic to this VM.
+To gernate traffic, install iperf on bothe VM. On VM that has python server and tcp module running, type:
+
+# iperf -s
+
+On other VM run:
+
+# iperf -c <IP-ADDRESS-OF-OTHER-VM>
+
+Verify it.
+
+cat /proc/net/tcpprobe. 
+
+You should see some data.
+
+Start the python agent on localhost IP address and port number 8080
+# To start the server on the port, run
+#python manage.py runserver <IP-ADDRESS-OF-LINUX>:8080
+
+Now request python script to send you a TCP statistics in JSON format. You can run it from the PC, if it has curl application installed or you can use it from the same VM where python script and kernel driver are running:
+
+curl -s http://$localIP:7402/app/startThread/1/
+

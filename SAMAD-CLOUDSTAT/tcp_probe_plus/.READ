@@ -1,0 +1,53 @@
+TCP uses two main window-based mechanisms: the receive window and the congestion window. RWND is receive-side limit
+and CWND is  used to limits number of tcp segments to be sent before requiring acknowledgment.
+If there is no packet loss, out of order segments received, CWND increases and that reduces the latency considering less
+round trip are required to transfer the same amount of data.
+
+CWND = min (4*MSS, max (2*MSS, 4380 bytes))
+
+Initial CWND is set to 3 or 10 Ethernet based networks with a 1500 MTU: 1500 - IP header - TCP header = 1460 (without TCP options).
+
+
+SSTRESH (Slow Start Threshold): CWND is used if CWND >= SSTRESH. Otherwise, slow start is in effect. Congestion avoidence algorithm, CUBIC (Default), sets the initial ssthresh to 0, so initially congestion avoiance is used, unless an ssthresh  
+metric higher than CWND is cached from a previous connection.
+
+# ip route show 10.0.0.1 table cache
+10.0.0.1 from 192.168.0.1 via 192.168.0.2 dev eth0
+cache mtu 1500 rtt 685ms rttvar 320ms ssthresh 12 cwnd 11 advmss 1460 hoplimit 64 initcwnd 10
+
+-----
+spin_lock_bh() that implements the standard spinlock as well as disables softirqs. This is needed when you have code outside a softirq that is also used inside a softirq. The corresponding unlock function is naturally spin_unlock_bh().
+
+To check all the set options: cd /proc/sys/net/lyatiss_cw_tcpprobe
+We may need to set probetime, 500ms default value keeps the overhead low. Also, application read bufsize of 4096 packets default, is good.
+------
+Module startup options: 
+sudo insmod tcp_probe_plus.ko full=1 probetime=100 bufsize=8192
+
+
+#### Port filtering
+
+This parameter controls the port-based filtering of the flows to track.
+
+- 0: no filtering
+- x: port to match. This is a single port number. If it matches any of the send or receive port, then the flow will be tracked.
+
+Example:
+
+        ubuntu@host:~$ more /proc/sys/net/lyatiss_cw_tcpprobe/port
+        0
+        ubuntu@host:~$ sudo sh -c 'echo 7103 > /proc/sys/net/lyatiss_cw_tcpprobe/port'
+
+
+#### Probe time
+
+Upon receiving an ACK, the receive time of the ACK is compared with the receive time of the previous ACK for the connection. If the time difference is equal to or more than the probe time, then this ACK is eligible to be written to `/proc/net/tcpprobe`. The probe time is configurable from user space. The default probe time is 500 ms. This value could be passed as a module initialization parameter or changed using this parameter.
+
+- default is 500 ms
+- x: sampling interval
+
+Example:
+
+        ubuntu@host:~$ more /proc/sys/net/lyatiss_cw_tcpprobe/probetime
+        500
+        ubuntu@host:~$ sudo sh -c 'echo 200 > /proc/sys/net/lyatiss_cw_tcpprobe/probetime'
